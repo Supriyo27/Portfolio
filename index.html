@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supriyo Jana | Fullstack Developer & Software Engineer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Custom Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            background: rgba(30, 41, 59, 0.75);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.3);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4f46e5;
+        }
+    </style>
+</head>
+<body class="bg-[#07090e] text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white overflow-x-hidden">
+
+    <!-- Canvas Container for 3D Background -->
+    <div id="canvas-container" class="fixed inset-0 z-0 pointer-events-none"></div>
+
+    <!-- Live Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <!-- Sticky Navigation Header -->
+    <header class="fixed top-0 left-0 right-0 z-40 glass-panel border-b border-slate-800/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300">
+                    SJ
+                </div>
+                <span class="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
+                    Supriyo.Dev
+                </span>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
+                <a href="#about" class="hover:text-indigo-400 transition-colors">About</a>
+                <a href="#education" class="hover:text-indigo-400 transition-colors">Education</a>
+                <a href="#skills" class="hover:text-indigo-400 transition-colors">Skills</a>
+                <a href="#projects" class="hover:text-indigo-400 transition-colors">Projects</a>
+                <a href="#contact" class="hover:text-indigo-400 transition-colors">Contact</a>
+            </nav>
+
+            <!-- Actions & Settings Toggle -->
+            <div class="hidden md:flex items-center space-x-4">
+                <button id="toggle-3d-controls" class="p-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 border border-slate-700/50 transition" title="Customize 3D Scene">
+                    <i data-lucide="sliders" class="w-5 h-5"></i>
+                </button>
+                <a href="#contact" class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium rounded-xl group bg-gradient-to-br from-purple-600 to-blue-500 hover:text-white text-white focus:ring-4 focus:outline-none focus:ring-blue-800">
+                    <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-slate-900 rounded-inset-xl group-hover:bg-opacity-0">
+                        Hire Me
+                    </span>
+                </a>
+            </div>
+
+            <!-- Mobile Menu Toggle Button -->
+            <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-400 hover:text-white focus:outline-none">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-b border-slate-800 px-4 pt-2 pb-6 space-y-3">
+            <a href="#about" class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800">About</a>
+            <a href="#education" class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800">Education</a>
+            <a href="#skills" class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800">Skills</a>
+            <a href="#projects" class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800">Projects</a>
+            <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800">Contact</a>
+            <div class="pt-2 flex items-center justify-between border-t border-slate-800">
+                <button id="toggle-3d-controls-mobile" class="flex items-center space-x-2 text-sm text-indigo-400 font-medium py-2">
+                    <i data-lucide="sliders" class="w-4 h-4"></i>
+                    <span>Customize 3D Scene</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Floating 3D Interactive Control Panel -->
+    <div id="controls-panel" class="fixed right-6 top-24 z-30 w-72 glass-panel p-5 rounded-2xl shadow-2xl border border-indigo-500/20 transform transition-all duration-300 translate-x-[120%] opacity-0">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-700/60 mb-4">
+            <div class="flex items-center space-x-2 text-indigo-400 font-semibold text-sm">
+                <i data-lucide="box" class="w-4 h-4"></i>
+                <span>3D Canvas Settings</span>
+            </div>
+            <button id="close-controls" class="text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+            <div>
+                <label class="block text-slate-300 font-medium mb-1">Main Geometry</label>
+                <select id="geo-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <option value="torusKnot">Torus Knot</option>
+                    <option value="icosahedron">Icosahedron</option>
+                    <option value="cube">Stylized Cube</option>
+                    <option value="octahedron">Octahedron</option>
+                    <option value="ring">Torus Ring</option>
+                </select>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-slate-300 font-medium mb-1">
+                    <span>Rotation Speed</span>
+                    <span id="speed-val">1.0x</span>
+                </div>
+                <input id="speed-slider" type="range" min="0" max="3" step="0.1" value="1" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-1.5">
+            </div>
+
+            <div>
+                <div class="flex justify-between text-slate-300 font-medium mb-1">
+                    <span>Particle Density</span>
+                    <span id="particle-val">1200</span>
+                </div>
+                <input id="particle-slider" type="range" min="200" max="2500" step="100" value="1200" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-1.5">
+            </div>
+
+            <div>
+                <label class="block text-slate-300 font-medium mb-1">Primary Color</label>
+                <div class="flex items-center space-x-2">
+                    <input id="color-picker" type="color" value="#6366f1" class="w-8 h-8 rounded border-0 bg-transparent cursor-pointer">
+                    <span id="color-hex" class="text-slate-400 font-mono">#6366f1</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                <span class="text-slate-300 font-medium">Wireframe Mode</span>
+                <input id="wireframe-toggle" type="checkbox" checked class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <main class="relative z-10 pt-20">
+
+        <!-- HERO SECTION -->
+        <section class="min-h-[calc(100vh-5rem)] flex items-center justify-center px-4 sm:px-6 lg:px-8 relative py-12">
+            <div class="max-w-5xl mx-auto text-center space-y-8">
+                
+                <!-- Status Pill -->
+                <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full glass-card border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-medium animate-pulse-slow">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>Available for Hire & Open for Freelance Projects</span>
+                </div>
+
+                <!-- Hero Heading -->
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-none">
+                    Hi, I'm <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500">Supriyo Jana</span>
+                </h1>
+
+                <!-- Hero Subtitle -->
+                <p class="max-w-2xl mx-auto text-lg sm:text-xl text-slate-300 leading-relaxed font-light">
+                    Fullstack Developer & Software Engineer crafting Web Apps, Mobile Solutions, UI/UX Designs, and Training AI Models.
+                </p>
+
+                <!-- Hero CTA Buttons -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                    <a href="#projects" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center space-x-2">
+                        <span>View My Projects</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                    <a href="#contact" class="w-full sm:w-auto px-8 py-4 rounded-xl glass-card text-slate-200 hover:text-white font-semibold transition-all transform hover:-translate-y-0.5 border border-slate-700/80 flex items-center justify-center space-x-2">
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                        <span>Contact Me</span>
+                    </a>
+                </div>
+
+                <!-- Quick Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-12 max-w-3xl mx-auto">
+                    <div class="glass-card p-4 rounded-2xl text-center">
+                        <p class="text-3xl font-black text-indigo-400">7+</p>
+                        <p class="text-xs text-slate-400 font-medium mt-1">Projects Built</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl text-center">
+                        <p class="text-3xl font-black text-purple-400">B.Tech</p>
+                        <p class="text-xs text-slate-400 font-medium mt-1">CSE AI & ML (2028)</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl text-center">
+                        <p class="text-3xl font-black text-pink-400">80%</p>
+                        <p class="text-xs text-slate-400 font-medium mt-1">Skill Proficiency</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl text-center">
+                        <p class="text-3xl font-black text-emerald-400">100%</p>
+                        <p class="text-xs text-slate-400 font-medium mt-1">Dedication</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about" class="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center space-x-2 text-indigo-400 font-semibold text-sm uppercase tracking-wider">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                        <span>About Me</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                        Software Engineer passionate about Web, Apps, and AI Machine Learning.
+                    </h2>
+                    <p class="text-slate-300 leading-relaxed font-light text-base">
+                        I am Supriyo Jana, a Fullstack Developer and Software Engineer based in West Bengal (Durgapur & Kolkata). I build responsive web applications, mobile apps, design seamless UI/UX interfaces, and train Machine Learning models.
+                    </p>
+                    <p class="text-slate-300 leading-relaxed font-light text-base">
+                        Currently pursuing my B.Tech in Computer Science Engineering (Artificial Intelligence and Machine Learning) at IEM Newtown Kolkata (under UEM Kolkata), expecting to graduate in 2028. I have successfully completed 7+ individual and collaborative projects.
+                    </p>
+
+                    <!-- Feature Highlights -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                        <div class="flex items-start space-x-3 p-3 rounded-xl bg-slate-900/40 border border-slate-800">
+                            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                                <i data-lucide="globe" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-white">Fullstack & App Dev</h4>
+                                <p class="text-xs text-slate-400 mt-0.5">End-to-end modern web and app development.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 p-3 rounded-xl bg-slate-900/40 border border-slate-800">
+                            <div class="p-2 rounded-lg bg-purple-500/10 text-purple-400">
+                                <i data-lucide="brain" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-white">AI & ML Model Training</h4>
+                                <p class="text-xs text-slate-400 mt-0.5">Python, C/C++, and intelligent data algorithms.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Card -->
+                <div class="lg:col-span-5">
+                    <div class="glass-card p-8 rounded-3xl relative overflow-hidden group">
+                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl group-hover:bg-indigo-500/30 transition-all"></div>
+                        <div class="flex items-center space-x-4 mb-6">
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold shadow-xl">
+                                SJ
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">Supriyo Jana</h3>
+                                <p class="text-sm text-indigo-400">Fullstack Developer & AI/ML Student</p>
+                                <p class="text-xs text-slate-400 mt-1">📍 Durgapur & Kolkata, West Bengal, India</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 text-sm text-slate-300 border-t border-slate-800 pt-6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Specialization</span>
+                                <span class="text-slate-200 font-medium">Web, App & UI/UX</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Degree Focus</span>
+                                <span class="text-slate-200 font-medium">CSE (AI & ML)</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Core Stack</span>
+                                <span class="text-slate-200 font-medium">React, Node, Python, C++</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-slate-800 flex justify-between items-center">
+                            <span class="text-xs text-slate-400">Find me on:</span>
+                            <div class="flex space-x-4 text-slate-300">
+                                <a href="https://github.com/Supriyo27" target="_blank" class="hover:text-indigo-400 transition" title="GitHub"><i data-lucide="github" class="w-5 h-5"></i></a>
+                                <a href="https://www.linkedin.com/in/supriyojana27" target="_blank" class="hover:text-indigo-400 transition" title="LinkedIn"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+                                <a href="mailto:supriyojana0987@gmail.com" class="hover:text-indigo-400 transition" title="Email"><i data-lucide="mail" class="w-5 h-5"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- EDUCATION SECTION -->
+        <section id="education" class="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <div class="inline-flex items-center space-x-2 text-indigo-400 font-semibold text-sm uppercase tracking-wider">
+                    <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                    <span>Academic Journey</span>
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                    Education History
+                </h2>
+                <p class="text-slate-400 text-sm sm:text-base">
+                    My educational background from school to ongoing university studies in Kolkata.
+                </p>
+            </div>
+
+            <div class="relative border-l-2 border-slate-800 max-w-4xl mx-auto pl-6 sm:pl-8 space-y-10">
+                
+                <!-- B.Tech -->
+                <div class="relative group">
+                    <div class="absolute -left-[31px] sm:-left-[39px] top-1.5 w-5 h-5 rounded-full bg-indigo-500 border-4 border-[#07090e]"></div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <span class="text-xs font-semibold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">2024 - 2028 (Expected)</span>
+                        <h3 class="text-xl font-bold text-white mt-3">B.Tech in CSE (Artificial Intelligence & Machine Learning)</h3>
+                        <p class="text-sm font-medium text-purple-400 mt-1">Institute of Engineering & Management (IEM), Newtown Kolkata</p>
+                        <p class="text-xs text-slate-400 mt-0.5">School of University of Engineering & Management (UEM Kolkata)</p>
+                        <p class="text-xs text-slate-300 mt-3 leading-relaxed">Focusing on AI algorithms, Machine Learning model training, Data Structures, Web/App Engineering, and fullstack modern software development.</p>
+                    </div>
+                </div>
+
+                <!-- Class 12 -->
+                <div class="relative group">
+                    <div class="absolute -left-[31px] sm:-left-[39px] top-1.5 w-5 h-5 rounded-full bg-purple-500 border-4 border-[#07090e]"></div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <span class="text-xs font-semibold text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">Passed in 2024</span>
+                        <h3 class="text-xl font-bold text-white mt-3">Class 12 Higher Secondary</h3>
+                        <p class="text-sm font-medium text-purple-400 mt-1">Zoom International School, Durgapur, West Bengal</p>
+                        <p class="text-xs text-slate-300 mt-2 leading-relaxed">Completed Senior Secondary Education with focus on Pure Science, Mathematics, and Computer Science fundamentals.</p>
+                    </div>
+                </div>
+
+                <!-- Class 10 -->
+                <div class="relative group">
+                    <div class="absolute -left-[31px] sm:-left-[39px] top-1.5 w-5 h-5 rounded-full bg-pink-500 border-4 border-[#07090e]"></div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <span class="text-xs font-semibold text-pink-400 bg-pink-500/10 px-3 py-1 rounded-full border border-pink-500/20">Passed in 2022</span>
+                        <h3 class="text-xl font-bold text-white mt-3">Class 10 Secondary Education</h3>
+                        <p class="text-sm font-medium text-purple-400 mt-1">DAV Model School, Durgapur, West Bengal</p>
+                        <p class="text-xs text-slate-300 mt-2 leading-relaxed">Successfully completed Secondary Education establishing strong core scientific and analytical skills.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SKILLS SECTION -->
+        <section id="skills" class="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <div class="inline-flex items-center space-x-2 text-indigo-400 font-semibold text-sm uppercase tracking-wider">
+                    <i data-lucide="code-2" class="w-4 h-4"></i>
+                    <span>Technical Capabilities</span>
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                    Skills & Technologies (69% - 80% Proficiency)
+                </h2>
+                <p class="text-slate-400 text-sm sm:text-base">
+                    Languages, frameworks, databases, design tools, and libraries I work with.
+                </p>
+            </div>
+
+            <!-- Skills Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
+                                <i data-lucide="layout" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="font-bold text-white">HTML, CSS & JS</h3>
+                        </div>
+                        <span class="text-xs font-semibold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">80%</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Semantic HTML5, Responsive CSS Layouts, ES6+ Modern JavaScript.</p>
+                    <div class="w-full bg-slate-800 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full" style="width: 80%"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
+                                <i data-lucide="atom" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="font-bold text-white">React & Node.js</h3>
+                        </div>
+                        <span class="text-xs font-semibold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full">78%</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Component Architecture, Hooks, Express REST APIs & Backend Services.</p>
+                    <div class="w-full bg-slate-800 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full" style="width: 78%"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                                <i data-lucide="terminal" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="font-bold text-white">Python, C & C++</h3>
+                        </div>
+                        <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">75%</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Data Structures, Algorithms, AI/ML model scripts and logic handling.</p>
+                    <div class="w-full bg-slate-800 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full" style="width: 75%"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+                                <i data-lucide="database" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="font-bold text-white">MongoDB & SQL</h3>
+                        </div>
+                        <span class="text-xs font-semibold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-full">74%</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">NoSQL Document Collections, Relational Schemas, Queries & Data persistence.</p>
+                    <div class="w-full bg-slate-800 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style="width: 74%"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400">
+                                <i data-lucide="box" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="font-bold text-white">Three.js & Blender</h3>
+                        </div>
+                        <span class="text-xs font-semibold text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-full">72%</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">3D Canvas rendering, lighting, camera controls, and basic 3D asset workflows.</p>
+                    <div class="w-full bg-slate-800 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full" style="width: 72%"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 rounded-xl bg-pink-500/10 text-pink-400">
+                                <i data-lucide="figma" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="font-bold text-white">Figma & Git</h3>
+                        </div>
+                        <span class="text-xs font-semibold text-pink-400 bg-pink-500/10 px-2.5 py-1 rounded-full">76%</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">UI/UX Prototyping, Wireframing, Version Control & GitHub teamwork.</p>
+                    <div class="w-full bg-slate-800 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full" style="width: 76%"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- PROJECTS SECTION -->
+        <section id="projects" class="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <div class="inline-flex items-center space-x-2 text-indigo-400 font-semibold text-sm uppercase tracking-wider">
+                    <i data-lucide="briefcase" class="w-4 h-4"></i>
+                    <span>Portfolio Highlights</span>
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                    Featured Projects (7+ Completed)
+                </h2>
+                <p class="text-slate-400 text-sm sm:text-base">
+                    Selected individual and group software projects built during my development journey.
+                </p>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Project 1 -->
+                <div class="project-card glass-card rounded-2xl overflow-hidden cursor-pointer group" data-project="1">
+                    <div class="relative h-48 bg-gradient-to-br from-indigo-900/50 to-slate-900 flex items-center justify-center p-6 border-b border-slate-800 overflow-hidden">
+                        <div class="w-24 h-24 rounded-full bg-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                            <i data-lucide="globe" class="w-12 h-12 text-indigo-400"></i>
+                        </div>
+                        <span class="absolute top-4 right-4 bg-indigo-500/20 text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-500/30">Fullstack Web</span>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Interactive Web & App Platform</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed line-clamp-2">A responsive web application featuring custom UI/UX design, state management, and real-time backend API integration.</p>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <span class="text-[10px] font-medium bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md">React</span>
+                            <span class="text-[10px] font-medium bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md">Node.js</span>
+                            <span class="text-[10px] font-medium bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md">MongoDB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="project-card glass-card rounded-2xl overflow-hidden cursor-pointer group" data-project="2">
+                    <div class="relative h-48 bg-gradient-to-br from-purple-900/50 to-slate-900 flex items-center justify-center p-6 border-b border-slate-800 overflow-hidden">
+                        <div class="w-24 h-24 rounded-full bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                            <i data-lucide="brain" class="w-12 h-12 text-purple-400"></i>
+                        </div>
+                        <span class="absolute top-4 right-4 bg-purple-500/20 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full border border-purple-500/30">AI & Machine Learning</span>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        <h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">AI Predictive Model Trainer</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed line-clamp-2">Python machine learning workflow for data preprocessing, training predictive models, and visualizing performance metrics.</p>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <span class="text-[10px] font-medium bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md">Python</span>
+                            <span class="text-[10px] font-medium bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md">C++</span>
+                            <span class="text-[10px] font-medium bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md">ML Models</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 3 -->
+                <div class="project-card glass-card rounded-2xl overflow-hidden cursor-pointer group" data-project="3">
+                    <div class="relative h-48 bg-gradient-to-br from-pink-900/50 to-slate-900 flex items-center justify-center p-6 border-b border-slate-800 overflow-hidden">
+                        <div class="w-24 h-24 rounded-full bg-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                            <i data-lucide="box" class="w-12 h-12 text-pink-400"></i>
+                        </div>
+                        <span class="absolute top-4 right-4 bg-pink-500/20 text-pink-300 text-xs font-semibold px-3 py-1 rounded-full border border-pink-500/30">3D Experience</span>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        <h3 class="text-xl font-bold text-white group-hover:text-pink-400 transition-colors">3D Interactive Canvas & UI</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed line-clamp-2">Web visual application combining Three.js 3D graphic rendering with interactive controls and custom Figma design layouts.</p>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <span class="text-[10px] font-medium bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md">Three.js</span>
+                            <span class="text-[10px] font-medium bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md">Figma</span>
+                            <span class="text-[10px] font-medium bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md">JavaScript</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION -->
+        <section id="contact" class="py-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+            <div class="glass-card rounded-3xl p-8 sm:p-12 relative overflow-hidden border border-slate-800">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                    
+                    <div class="lg:col-span-5 space-y-6">
+                        <div class="inline-flex items-center space-x-2 text-indigo-400 font-semibold text-sm uppercase tracking-wider">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            <span>Contact Me</span>
+                        </div>
+                        <h2 class="text-3xl font-bold text-white tracking-tight">Let's connect and build together!</h2>
+                        <p class="text-slate-300 text-sm leading-relaxed font-light">
+                            Available for hire, open for freelance work, web/app development projects, or general tech collaborations. Feel free to reach out directly.
+                        </p>
+
+                        <div class="space-y-4 pt-4 text-sm text-slate-300">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
+                                    <i data-lucide="mail" class="w-5 h-5"></i>
+                                </div>
+                                <a href="mailto:supriyojana0987@gmail.com" class="hover:text-indigo-400 transition">supriyojana0987@gmail.com</a>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+                                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                </div>
+                                <span>Durgapur & Kolkata, West Bengal, India</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div class="lg:col-span-7">
+                        <form id="contact-form" class="space-y-4">
+                            <div>
+                                <label for="name" class="block text-xs font-medium text-slate-300 mb-1">Your Name</label>
+                                <input type="text" id="name" required class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition" placeholder="Your Full Name">
+                            </div>
+
+                            <div>
+                                <label for="email" class="block text-xs font-medium text-slate-300 mb-1">Your Email</label>
+                                <input type="email" id="email" required class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition" placeholder="yourname@example.com">
+                            </div>
+
+                            <div>
+                                <label for="message" class="block text-xs font-medium text-slate-300 mb-1">Message</label>
+                                <textarea id="message" rows="4" required class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition resize-none" placeholder="Write your message or freelance inquiry..."></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center space-x-2">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                                <span>Send Message</span>
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-slate-800/80 py-8 px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p>© 2026 Supriyo Jana. All rights reserved.</p>
+                <div class="flex space-x-6">
+                    <a href="https://github.com/Supriyo27" target="_blank" class="hover:text-slate-200 transition">GitHub</a>
+                    <a href="https://www.linkedin.com/in/supriyojana27" target="_blank" class="hover:text-slate-200 transition">LinkedIn</a>
+                    <a href="mailto:supriyojana0987@gmail.com" class="hover:text-slate-200 transition">Email</a>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- PROJECT MODAL POPUP -->
+    <div id="project-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-2xl rounded-3xl p-6 sm:p-8 space-y-6 relative border border-slate-700 transform scale-95 transition-transform duration-300" id="modal-content-container">
+            <button id="close-modal" class="absolute top-6 right-6 text-slate-400 hover:text-white p-2">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            
+            <div id="modal-body" class="space-y-4">
+                <!-- Dynamic Modal Content populated via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT CODE -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // THREE.JS 3D BACKGROUND
+        let scene, camera, renderer, particlesMesh, mainMesh;
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+        
+        const config = {
+            speed: 1.0,
+            particleCount: 1200,
+            color: '#6366f1',
+            wireframe: true,
+            geometryType: 'torusKnot'
+        };
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x6366f1, 2, 100);
+            pointLight.position.set(20, 20, 20);
+            scene.add(pointLight);
+
+            const pointLight2 = new THREE.PointLight(0xec4899, 2, 100);
+            pointLight2.position.set(-20, -20, -20);
+            scene.add(pointLight2);
+
+            createMainMesh();
+            createParticleField();
+
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('mousemove', onMouseMove);
+
+            animate();
+        }
+
+        function getGeometry(type) {
+            switch(type) {
+                case 'icosahedron': return new THREE.IcosahedronGeometry(12, 2);
+                case 'cube': return new THREE.BoxGeometry(14, 14, 14, 4, 4, 4);
+                case 'octahedron': return new THREE.OctahedronGeometry(14, 2);
+                case 'ring': return new THREE.TorusGeometry(12, 3, 16, 100);
+                case 'torusKnot':
+                default: return new THREE.TorusKnotGeometry(9, 2.5, 120, 16);
+            }
+        }
+
+        function createMainMesh() {
+            if (mainMesh) scene.remove(mainMesh);
+
+            const geometry = getGeometry(config.geometryType);
+            const material = new THREE.MeshStandardMaterial({
+                color: new THREE.Color(config.color),
+                wireframe: config.wireframe,
+                roughness: 0.3,
+                metalness: 0.8,
+            });
+
+            mainMesh = new THREE.Mesh(geometry, material);
+            mainMesh.position.set(12, 0, -5);
+            scene.add(mainMesh);
+        }
+
+        function createParticleField() {
+            if (particlesMesh) scene.remove(particlesMesh);
+
+            const count = config.particleCount;
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            const baseColor = new THREE.Color(config.color);
+
+            for (let i = 0; i < count * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 120;
+                positions[i + 1] = (Math.random() - 0.5) * 120;
+                positions[i + 2] = (Math.random() - 0.5) * 120;
+
+                colors[i] = baseColor.r + (Math.random() - 0.5) * 0.2;
+                colors[i + 1] = baseColor.g + (Math.random() - 0.5) * 0.2;
+                colors[i + 2] = baseColor.b + (Math.random() - 0.5) * 0.2;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.35,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6
+            });
+
+            particlesMesh = new THREE.Points(geometry, material);
+            scene.add(particlesMesh);
+        }
+
+        function onMouseMove(event) {
+            mouseX = (event.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (event.clientY - window.innerHeight / 2) * 0.001;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            targetX += (mouseX - targetX) * 0.05;
+            targetY += (mouseY - targetY) * 0.05;
+
+            if (mainMesh) {
+                mainMesh.rotation.x += 0.003 * config.speed;
+                mainMesh.rotation.y += 0.005 * config.speed;
+                mainMesh.rotation.z += 0.002 * config.speed;
+
+                mainMesh.position.x = 10 + targetX * 15;
+                mainMesh.position.y = -targetY * 15;
+            }
+
+            if (particlesMesh) {
+                particlesMesh.rotation.y = -targetX * 5;
+                particlesMesh.rotation.x = targetY * 5;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('DOMContentLoaded', initThreeJS);
+
+        // UI & INTERACTIVITY LOGIC
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        const controlsPanel = document.getElementById('controls-panel');
+        const toggleBtn = document.getElementById('toggle-3d-controls');
+        const toggleMobileBtn = document.getElementById('toggle-3d-controls-mobile');
+        const closeControlsBtn = document.getElementById('close-controls');
+
+        function togglePanel() {
+            const isOpen = !controlsPanel.classList.contains('translate-x-[120%]');
+            if (isOpen) {
+                controlsPanel.classList.add('translate-x-[120%]', 'opacity-0');
+            } else {
+                controlsPanel.classList.remove('translate-x-[120%]', 'opacity-0');
+            }
+        }
+
+        toggleBtn.addEventListener('click', togglePanel);
+        toggleMobileBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            togglePanel();
+        });
+        closeControlsBtn.addEventListener('click', togglePanel);
+
+        document.getElementById('geo-select').addEventListener('change', (e) => {
+            config.geometryType = e.target.value;
+            createMainMesh();
+            showToast(`Updated geometry to ${e.target.value}`);
+        });
+
+        document.getElementById('speed-slider').addEventListener('input', (e) => {
+            config.speed = parseFloat(e.target.value);
+            document.getElementById('speed-val').innerText = `${config.speed.toFixed(1)}x`;
+        });
+
+        document.getElementById('particle-slider').addEventListener('change', (e) => {
+            config.particleCount = parseInt(e.target.value);
+            document.getElementById('particle-val').innerText = config.particleCount;
+            createParticleField();
+            showToast(`Particle count set to ${config.particleCount}`);
+        });
+
+        document.getElementById('color-picker').addEventListener('input', (e) => {
+            config.color = e.target.value;
+            document.getElementById('color-hex').innerText = config.color;
+            if (mainMesh) mainMesh.material.color.set(config.color);
+            createParticleField();
+        });
+
+        document.getElementById('wireframe-toggle').addEventListener('change', (e) => {
+            config.wireframe = e.target.checked;
+            if (mainMesh) mainMesh.material.wireframe = config.wireframe;
+        });
+
+        // Project Modal
+        const projectData = {
+            1: {
+                title: 'Interactive Web & App Platform',
+                category: 'Fullstack Development',
+                description: 'Fullstack web application created with React, Node.js, and MongoDB featuring responsive UI design, secure user interaction, and RESTful APIs.',
+                stack: ['React', 'Node.js', 'MongoDB', 'JavaScript', 'Tailwind CSS'],
+                features: ['Responsive UI/UX frontend', 'REST API integration', 'State management & fast performance']
+            },
+            2: {
+                title: 'AI Predictive Model Trainer',
+                category: 'AI & Machine Learning',
+                description: 'Machine Learning workflow engineered using Python for data preprocessing, training predictive models, and analyzing algorithm evaluation metrics.',
+                stack: ['Python', 'C++', 'Machine Learning Models', 'Data Analysis'],
+                features: ['Dataset cleanup & normalization', 'Supervised model training', 'Accuracy and performance analysis']
+            },
+            3: {
+                title: '3D Interactive Canvas & UI',
+                category: '3D & Graphic Web Experience',
+                description: '3D interactive web app blending Three.js geometry canvas animation with sleek modern UI interfaces prototyped in Figma.',
+                stack: ['Three.js', 'Figma', 'HTML/CSS', 'JavaScript', 'Blender'],
+                features: ['Real-time 3D rotation and lighting', 'Custom Figma design system', 'Smooth browser animation loops']
+            }
+        };
+
+        const modal = document.getElementById('project-modal');
+        const modalBody = document.getElementById('modal-body');
+        const closeModalBtn = document.getElementById('close-modal');
+
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.getAttribute('data-project');
+                const data = projectData[id];
+
+                if (data) {
+                    modalBody.innerHTML = `
+                        <div class="inline-block px-3 py-1 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs font-semibold rounded-full mb-2">
+                            ${data.category}
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">${data.title}</h2>
+                        <p class="text-slate-300 text-sm leading-relaxed">${data.description}</p>
+                        
+                        <div class="space-y-2">
+                            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Key Highlights</h4>
+                            <ul class="list-disc list-inside text-xs text-slate-300 space-y-1">
+                                ${data.features.map(f => `<li>${f}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="space-y-2 pt-2">
+                            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tech Stack</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${data.stack.map(tech => `<span class="text-xs font-medium bg-slate-800 text-indigo-300 px-3 py-1 rounded-lg border border-slate-700">${tech}</span>`).join('')}
+                            </div>
+                        </div>
+
+                        <div class="pt-4 flex space-x-3">
+                            <a href="https://github.com/Supriyo27" target="_blank" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition flex items-center space-x-2">
+                                <span>GitHub Repository</span>
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                }
+            });
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        document.getElementById('contact-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            showToast('Message sent! Supriyo will get back to you soon.');
+            e.target.reset();
+        });
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'glass-panel px-4 py-3 rounded-xl border border-indigo-500/40 text-xs text-slate-100 flex items-center space-x-2 shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0';
+            toast.innerHTML = `
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
